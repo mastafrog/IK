@@ -1,57 +1,39 @@
-var gulp = require('gulp');
-var handlebars = require('gulp-compile-handlebars');
-var handlebars = require('gulp-handlebars');
-var gulpFilter = require('gulp-filter');
-var declare = require('gulp-declare');
-var concat = require('gulp-concat');
-var rename = require('gulp-rename');
-var bower = require('gulp-bower');
-var wrap = require('gulp-wrap');
+var gulp = require('gulp'),
+    handlebars = require('gulp-compile-handlebars'),
+    mainBowerFiles = require('main-bower-files'),
+    handlebars = require('gulp-handlebars'),
+    gulpFilter = require('gulp-filter'),
+    declare = require('gulp-declare'),
+    concat = require('gulp-concat'),
+    rename = require('gulp-rename'),
+    bower = require('gulp-bower'),
+   server = require('gulp-server-livereload'),
+    wrap = require('gulp-wrap');
 
-
-gulp.task('run', function() {
-
-});
-
-var src = {
-  bower: ['bower.json', '.bowerrc']
-};
 
 var publishdir = 'build';
-
 var dist = {
-  all: [publishdir + '/**/*'],
+  all: publishdir + '/**/*',
   css: publishdir + '/css/',
   js: publishdir + '/js/',
   vendor: publishdir + '/js/libs/'
 };
 
 gulp.task('bower', function() {
-  var jsFilter = gulpFilter('**/*.js')
-  var cssFilter = gulpFilter('**/*.css')
-  
-return bower()
-    .pipe(jsFilter)
-    .pipe(concat('vendor.js'))
-    .pipe(gulp.dest(dist.js))
-    .pipe(jsFilter.restore())
-    .pipe(cssFilter)
-    .pipe(concat('vendor.css'))
-    .pipe(gulp.dest(dist.css))
-    .pipe(cssFilter.restore())
-    .pipe(rename(function(path) {
-      if (~path.dirname.indexOf('fonts')) {
-        path.dirname = '/fonts'
-      }
-    }))
-    .pipe(gulp.dest(dist.vendor))
-
-/*
-  return bower('./my_bower_components')
-    .pipe(concat('lib.min.js'))
-    .pipe(gulp.dest('build/js/libs/'))
-    */
+  return gulp.src(mainBowerFiles())
+        .pipe(gulp.dest(dist.vendor))
 });
+
+
+// TODO: Dynamic script list to push in handlebare 
+gulp.task('jsfiles', function(){
+  var scripts = gulp.src([dist.vendor+'/**/*.js']); 
+  for (key in scripts) {
+    console.log(scripts)
+  }
+});
+
+
 
 
 gulp.task('templates', function(){
@@ -59,9 +41,32 @@ gulp.task('templates', function(){
     .pipe(handlebars())
     .pipe(wrap('Handlebars.template(<%= contents %>)'))
     .pipe(declare({
-      namespace: 'MyApp.templates',
+      namespace: 'IK.templates',
       noRedeclare: true, // Avoid duplicate declarations 
     }))
     .pipe(concat('templates.js'))
-    .pipe(gulp.dest('build/js/'));
+    .pipe(gulp.dest(dist.js));
+});
+
+gulp.task('default', function () {
+  // TODO: compile haldelbars to html
+ //   var templateData = gulp.src(gulp.dest(dist.js)),
+ /*
+    options = {
+    }
+    return gulp.src('src/templates/IK.html')
+        .pipe(handlebars(templateData, options))
+        .pipe(rename('index.html'))
+        .pipe(gulp.dest(publishdir));
+*/
+  gulp.src('/src/templates/IK.html').pipe(rename('index.html'))
+        .pipe(gulp.dest(publishdir));
+
+  gulp.src('build')
+    .pipe(server({
+      livereload: true,
+      defaultFile: 'build/index.html',
+      directoryListing: true,
+      open: true
+    }));
 });
