@@ -5,7 +5,8 @@
 .LSOverride
 
 # Icon must end with two \r
-Icon
+Icon
+
 
 # Thumbnails
 ._*
@@ -28,3 +29,6 @@ build
 node_modules
 bower_components
 .sass-cache
+*.css.map
+build/
+*.log
